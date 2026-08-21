@@ -164,7 +164,10 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
 function CourseCard({ course }: { course: (typeof mockCourses)[number] }) {
   return (
-    <div className="flex items-center gap-4 rounded-lg border-b border-slate-100 py-4 transition-colors duration-200 last:border-b-0 hover:bg-slate-50/50">
+    <Link
+      href={`/course/${course.id}`}
+      className="flex items-center gap-4 rounded-lg border-b border-slate-100 py-4 transition-colors duration-200 last:border-b-0 hover:bg-slate-50/50"
+    >
       <div className={`h-16 w-16 shrink-0 rounded-xl bg-gradient-to-br ${course.color}`} />
       <div className="min-w-0 flex-1">
         <h3 className="text-sm font-semibold text-blue-600">
@@ -173,12 +176,13 @@ function CourseCard({ course }: { course: (typeof mockCourses)[number] }) {
         <p className="mt-0.5 text-xs text-slate-500">{course.semester}</p>
       </div>
       <button
+        onClick={(e) => e.preventDefault()}
         className="shrink-0 rounded-md p-1.5 text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-600"
         aria-label={`Options for ${course.title}`}
       >
         <MoreVertical className="h-4 w-4" />
       </button>
-    </div>
+    </Link>
   );
 }
 
