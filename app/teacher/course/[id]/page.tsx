@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createPortal } from "react-dom";
@@ -132,11 +132,10 @@ export default function TeacherCourseDetailPage() {
   const [newItemType, setNewItemType] = useState<SectionItem["type"]>("resource");
   const [sectionActionsOpen, setSectionActionsOpen] = useState<string | null>(null);
   const [itemActionsOpen, setItemActionsOpen] = useState<string | null>(null);
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [editingItemName, setEditingItemName] = useState("");
-  const [editingItemType, setEditingItemType] = useState<SectionItem["type"]>("resource");
   const [sectionMenuPos, setSectionMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [itemMenuPos, setItemMenuPos] = useState<{ x: number; y: number } | null>(null);
+  const [isAddingSection, setIsAddingSection] = useState(false);
+  const [newSectionTitle, setNewSectionTitle] = useState("New Section");
 
   const toggleSection = (index: number) => {
     setExpandedSection((prev) => (prev === index ? null : index));
@@ -181,24 +180,14 @@ export default function TeacherCourseDetailPage() {
     setNewItemType("resource");
   };
 
-  const handleStartEditItem = (itemId: string, currentName: string, currentType: SectionItem["type"]) => {
-    setItemActionsOpen(null);
-    setItemMenuPos(null);
-    setEditingItemId(itemId);
-    setEditingItemName(currentName);
-    setEditingItemType(currentType);
+  const handleSaveNewSection = () => {
+    setIsAddingSection(false);
+    setNewSectionTitle("New Section");
   };
 
-  const handleSaveEditItem = () => {
-    setEditingItemId(null);
-    setEditingItemName("");
-    setEditingItemType("resource");
-  };
-
-  const handleCancelEditItem = () => {
-    setEditingItemId(null);
-    setEditingItemName("");
-    setEditingItemType("resource");
+  const handleCancelNewSection = () => {
+    setIsAddingSection(false);
+    setNewSectionTitle("New Section");
   };
 
   if (!course) {
@@ -218,7 +207,7 @@ export default function TeacherCourseDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen overflow-visible bg-zinc-50">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-4 px-4 sm:px-6">
           <Link href="/teacher" className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900">
@@ -273,7 +262,7 @@ export default function TeacherCourseDetailPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-5xl overflow-visible px-4 py-6 sm:px-6">
         <h1 className="text-2xl font-bold text-slate-900">{course.code}-{course.title}</h1>
 
         <div className="mt-4 border-b border-slate-200">
@@ -294,7 +283,7 @@ export default function TeacherCourseDetailPage() {
                 {expandedSection !== null ? "Collapse all" : "Expand all"}
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-visible">
               {course.sections.map((section, i) => {
                 const isOpen = expandedSection === i;
                 const isEditing = editingSection === section.id;
@@ -328,25 +317,6 @@ export default function TeacherCourseDetailPage() {
                           const Icon = itemIcons[item.type];
                           const color = itemColors[item.type];
                           const isItemOpen = itemActionsOpen === item.id;
-                          const isEditingItem = editingItemId === item.id;
-                          if (isEditingItem) {
-                            return (
-                              <div key={j} className="flex flex-col gap-2 rounded-md border border-blue-200 bg-blue-50/50 px-3 py-3">
-                                <input type="text" value={editingItemName} onChange={(e) => setEditingItemName(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" autoFocus />
-                                <select value={editingItemType} onChange={(e) => setEditingItemType(e.target.value as SectionItem["type"])} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                  <option value="resource">Resource</option>
-                                  <option value="url">URL</option>
-                                  <option value="assignment">Assignment</option>
-                                  <option value="quiz">Quiz</option>
-                                  <option value="forum">Forum</option>
-                                </select>
-                                <div className="flex gap-2">
-                                  <button onClick={handleSaveEditItem} className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800">Save</button>
-                                  <button onClick={handleCancelEditItem} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
-                                </div>
-                              </div>
-                            );
-                          }
                           return (
                             <div key={j} className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-slate-700 transition-colors duration-150 hover:bg-slate-50">
                               <Icon className={`h-4 w-4 shrink-0 ${color}`} />
@@ -359,26 +329,11 @@ export default function TeacherCourseDetailPage() {
                             </div>
                           );
                         })}
-                        {isAddingItem ? (
-                          <div className="mt-2 flex flex-col gap-2 rounded-md border border-dashed border-slate-300 bg-slate-50 p-3">
-                            <input type="text" value={newItemName} onChange={(e) => setNewItemName(e.target.value)} placeholder="Item name" className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" autoFocus />
-                            <select value={newItemType} onChange={(e) => setNewItemType(e.target.value as SectionItem["type"])} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                              <option value="resource">Resource</option>
-                              <option value="url">URL</option>
-                              <option value="assignment">Assignment</option>
-                              <option value="quiz">Quiz</option>
-                              <option value="forum">Forum</option>
-                            </select>
-                            <div className="flex gap-2">
-                              <button onClick={handleSaveNewItem} className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800">Add</button>
-                              <button onClick={handleCancelAddItem} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button onClick={() => { setAddingItemToSection(section.id); setNewItemName(""); setNewItemType("resource"); }} className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 transition-colors duration-150 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600">
+                        {isAddingItem ? null : (
+                          <Link href={`/teacher/course/${courseId}/${section.id}/new-item`} className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 transition-colors duration-150 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600">
                             <Plus className="h-4 w-4" />
                             Add item
-                          </button>
+                          </Link>
                         )}
                       </div>
                     )}
@@ -386,10 +341,20 @@ export default function TeacherCourseDetailPage() {
                 );
               })}
             </div>
-            <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 py-3 text-sm font-medium text-slate-900 transition-colors duration-150 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600">
-              <Plus className="h-4 w-4" />
-              Add section
-            </button>
+            {isAddingSection ? (
+              <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+                <input type="text" value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} className="mb-3 w-full rounded-md border border-slate-300 px-3 py-2 text-base font-bold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" autoFocus />
+                <div className="flex gap-2">
+                  <button onClick={handleSaveNewSection} className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Add Section</button>
+                  <button onClick={handleCancelNewSection} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setIsAddingSection(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 py-3 text-sm font-medium text-slate-900 transition-colors duration-150 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600">
+                <Plus className="h-4 w-4" />
+                Add section
+              </button>
+            )}
           </div>
         )}
 
@@ -433,7 +398,7 @@ export default function TeacherCourseDetailPage() {
         <>
           <div className="fixed inset-0 z-[60]" onClick={() => { setItemActionsOpen(null); setItemMenuPos(null); }} />
           <div style={{ position: "fixed", left: itemMenuPos.x, top: itemMenuPos.y, zIndex: 70 }} className="w-36 rounded-lg border border-slate-200 bg-white py-1 shadow-lg animate-slide-down">
-            <button onClick={() => { let found: SectionItem | undefined; for (const s of course.sections) { found = s.items.find((it) => it.id === itemActionsOpen); if (found) break; } setItemActionsOpen(null); setItemMenuPos(null); if (found) handleStartEditItem(found.id, found.name, found.type); }} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+            <button onClick={() => { let sectionId = ""; for (const s of course.sections) { if (s.items.find((it) => it.id === itemActionsOpen)) { sectionId = s.id; break; } } setItemActionsOpen(null); setItemMenuPos(null); if (sectionId) window.location.href = `/teacher/course/${courseId}/${sectionId}/${itemActionsOpen}/edit-item`; }} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
               <Pencil className="h-4 w-4 text-slate-400" />
               Edit
             </button>
