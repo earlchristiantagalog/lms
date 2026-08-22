@@ -285,7 +285,7 @@ export default function ModuleDetailPage() {
         </h1>
 
         {/* Items */}
-        <div className="mt-6 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+        <div className="mt-6 space-y-1">
           {section.items.map((item, j) => {
             const Icon = itemIcons[item.type];
             const color = itemColors[item.type];
@@ -293,26 +293,17 @@ export default function ModuleDetailPage() {
               <Link
                 key={j}
                 href={`/course/${courseId}/${section.id}/view/${item.id}`}
-                className="flex w-full items-start gap-3 px-5 py-4 text-left transition-colors duration-150 hover:bg-slate-50"
+                className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors duration-150 hover:bg-slate-100"
               >
-                <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${color}`} />
+                <Icon className={`h-5 w-5 shrink-0 ${color}`} />
                 <div className="min-w-0 flex-1">
-                  <p className={`text-sm font-medium ${color}`}>{item.name}</p>
-                  {(item.opened || item.due) && (
-                    <div className="mt-1 flex flex-wrap gap-x-4 text-xs text-slate-500">
-                      {item.opened && (
-                        <span>
-                          <span className="font-medium">Opened:</span> {item.opened}
-                        </span>
-                      )}
-                      {item.due && (
-                        <span>
-                          <span className="font-medium">Due:</span> {item.due}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <p className="text-sm font-medium text-slate-700">{item.name}</p>
                 </div>
+                {(item.opened || item.due) && (
+                  <div className="hidden shrink-0 flex-wrap gap-x-4 text-xs text-slate-400 sm:flex">
+                    {item.due && <span>Due: {item.due}</span>}
+                  </div>
+                )}
               </Link>
             );
           })}

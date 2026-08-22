@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   BookOpen,
-  Calendar,
   Search,
   Bell,
   User,
@@ -27,21 +26,9 @@ const mockCourses = [
   { id: "3", code: "72138", title: "COMPUTER PROGRAMMING 1", semester: "AY 2026-2027 First Semester", color: "from-indigo-500 to-purple-700" },
 ];
 
-const mockTasks = [
-  {
-    id: "1",
-    title: "React Quiz 2",
-    instruction: "Answer all 15 questions covering hooks, context, and performance optimization patterns.",
-    type: "Quiz",
-    openDate: "Aug 18, 2026 09:00 AM",
-    closeDate: "Aug 21, 2026 11:59 PM",
-    course: "Advanced React Patterns",
-  },
-];
-
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", active: true },
-  { label: "My Courses", icon: BookOpen, href: "/courses", active: false },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", active: false },
+  { label: "My Courses", icon: BookOpen, href: "/courses", active: true },
 ];
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -64,10 +51,10 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navItems.map((item) => (
-            <a key={item.label} href={item.href} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 ${item.active ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}>
+            <Link key={item.label} href={item.href} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 ${item.active ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}>
               <item.icon className="h-4 w-4" />
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </aside>
@@ -75,48 +62,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   );
 }
 
-function CourseCard({ course }: { course: (typeof mockCourses)[number] }) {
-  return (
-    <Link href={`/course/${course.id}`} className="flex items-center gap-4 rounded-lg border-b border-slate-100 py-4 transition-colors duration-200 last:border-b-0 hover:bg-slate-50/50">
-      <div className={`h-16 w-16 shrink-0 rounded-xl bg-gradient-to-br ${course.color}`} />
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-semibold text-blue-600">{course.code}-{course.title}</h3>
-        <p className="mt-0.5 text-xs text-slate-500">{course.semester}</p>
-      </div>
-      <button onClick={(e) => e.preventDefault()} className="shrink-0 rounded-md p-1.5 text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-600" aria-label={`Options for ${course.title}`}>
-        <MoreVertical className="h-4 w-4" />
-      </button>
-    </Link>
-  );
-}
-
-function TaskCard({ task }: { task: (typeof mockTasks)[number] }) {
-  const typeColors: Record<string, { bg: string; text: string }> = {
-    Quiz: { bg: "bg-amber-100", text: "text-amber-700" },
-    Assignment: { bg: "bg-blue-100", text: "text-blue-700" },
-    Project: { bg: "bg-violet-100", text: "text-violet-700" },
-  };
-  const colors = typeColors[task.type] ?? { bg: "bg-slate-100", text: "text-slate-700" };
-
-  return (
-    <Link href={`/tasks/${task.id}`} className="block rounded-lg border border-slate-200 bg-white p-4 transition-all duration-200 hover:border-slate-300">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-slate-900">{task.title}</p>
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${colors.bg} ${colors.text}`}>{task.type}</span>
-      </div>
-      <p className="mt-1.5 text-xs leading-relaxed text-slate-500 line-clamp-2">{task.instruction}</p>
-      <p className="mt-2 text-xs text-slate-400">{task.course}</p>
-      <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
-        <div><span className="font-medium text-slate-600">Opens:</span> <span>{task.openDate}</span></div>
-      </div>
-      <div className="mt-1 text-xs text-slate-500">
-        <span className="font-medium text-slate-600">Due:</span> <span>{task.closeDate}</span>
-      </div>
-    </Link>
-  );
-}
-
-export default function DashboardPage() {
+export default function CoursesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -137,6 +83,12 @@ export default function DashboardPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const filteredCourses = mockCourses.filter(
+    (c) =>
+      c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.code.includes(searchQuery)
+  );
+
   return (
     <div className="flex min-h-screen bg-zinc-50">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -147,7 +99,7 @@ export default function DashboardPage() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold text-slate-900">Welcome back, {mockUser.name}!</h1>
+            <h1 className="truncate text-lg font-semibold text-slate-900">My Courses</h1>
           </div>
           <div className="relative hidden sm:block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -169,25 +121,42 @@ export default function DashboardPage() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6">
-          <div className="mx-auto max-w-7xl space-y-6">
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-semibold text-slate-900">Tasks</h2>
-                <Calendar className="h-4 w-4 text-slate-400" />
-              </div>
-              <div className="grid gap-3">
-                {mockTasks.map((task) => (<TaskCard key={task.id} task={task} />))}
-              </div>
+          <div className="mx-auto max-w-7xl">
+            <div className="py-4">
+              <h2 className="text-base font-semibold text-slate-900">Enrolled Courses</h2>
             </div>
-            <div>
-              <div className="flex items-center justify-between py-4">
-                <h2 className="text-base font-semibold text-slate-900">Enrolled Courses</h2>
-                <button className="text-xs font-medium text-slate-500 transition-colors duration-200 hover:text-slate-900">View all</button>
-              </div>
-              <div className="divide-y divide-slate-200">
-                {mockCourses.map((course) => (<CourseCard key={course.id} course={course} />))}
-              </div>
+            <div className="divide-y divide-slate-200">
+              {filteredCourses.map((course) => (
+                <Link
+                  key={course.id}
+                  href={`/course/${course.id}`}
+                  className="flex items-center gap-4 py-4 transition-colors duration-200 hover:bg-slate-50/50"
+                >
+                  <div className={`h-16 w-16 shrink-0 rounded-xl bg-gradient-to-br ${course.color}`} />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold text-blue-600">
+                      {course.code}-{course.title}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-slate-500">{course.semester}</p>
+                  </div>
+                  <button
+                    onClick={(e) => e.preventDefault()}
+                    className="shrink-0 rounded-md p-1.5 text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-600"
+                    aria-label={`Options for ${course.title}`}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                </Link>
+              ))}
             </div>
+
+            {filteredCourses.length === 0 && (
+              <div className="py-12 text-center">
+                <BookOpen className="mx-auto h-10 w-10 text-slate-300" />
+                <p className="mt-3 text-sm font-medium text-slate-900">No courses found</p>
+                <p className="mt-1 text-xs text-slate-500">Try adjusting your search.</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
